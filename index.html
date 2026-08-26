@@ -3,14 +3,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f4f3f0">
+<meta name="theme-color" content="#1e40af">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="车队单证">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
+<link rel="manifest" href="manifest.json">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>泉州港运输看板</title>
 <style>
 :root {
-  --page-bg: #f4f3f0; --surface-card: #fcfbf8; --surface-nested: #f7f6f1;
+  --page-bg: #f4f3f0; --bg: #f4f3f0; --bg-secondary: #ecebe5; --surface: #fcfbf8; --surface-card: #fcfbf8; --surface-nested: #f7f6f1;
   --border: #ecebe5; --border-input: #e0ded6;
   --text: #232220; --text-secondary: #8f8a80; --text-tertiary: #b6b1a6;
   --accent: #2f2e2b; --accent-muted: #efeee8; --on-accent: #f4f3f0;
@@ -1262,7 +1269,7 @@ function setTheme(theme) {
   localStorage.setItem('qzd_theme', theme);
   var root = document.documentElement;
   // 先清除所有主题变量（恢复 :root 默认）
-  var themeVars = ['--page-bg','--page-bg-image','--surface-card','--surface-nested','--border','--border-input',
+  var themeVars = ['--page-bg','--bg','--bg-secondary','--surface','--page-bg-image','--surface-card','--surface-nested','--border','--border-input',
     '--text','--text-secondary','--text-tertiary','--accent','--accent-muted','--on-accent',
     '--danger','--danger-muted','--drawer-bg','--drawer-bg-top','--drawer-text','--drawer-text-mute',
     '--drawer-hover','--drawer-active','--shadow-card','--shadow-overlay','--drawer-bg-image','--login-card-bg'];
@@ -1275,7 +1282,7 @@ function setTheme(theme) {
     root.setAttribute('data-theme', 'light');
   } else if (theme === 'dark') {
     var darkVars = {
-      '--page-bg': '#1a1a18', '--surface-card': '#262624', '--surface-nested': '#2e2e2c',
+      '--page-bg': '#1a1a18', '--bg': '#1a1a18', '--bg-secondary': '#262624', '--surface': '#262624', '--surface-card': '#262624', '--surface-nested': '#2e2e2c',
       '--border': '#3a3a38', '--border-input': '#444440',
       '--text': '#f0efe8', '--text-secondary': '#a0a098', '--text-tertiary': '#6a6a64',
       '--accent': '#7a9cf0', '--accent-muted': '#1e2230', '--on-accent': '#ffffff',
@@ -1290,7 +1297,7 @@ function setTheme(theme) {
     for (var key in darkVars) root.style.setProperty(key, darkVars[key]);
   } else if (theme === 'dark-blue') {
     var blueVars = {
-      '--page-bg': '#0d1b2a', '--surface-card': '#1b2f45', '--surface-nested': '#234060',
+      '--page-bg': '#0d1b2a', '--bg': '#0d1b2a', '--bg-secondary': '#1b2f45', '--surface': '#1b2f45', '--surface-card': '#1b2f45', '--surface-nested': '#234060',
       '--border': '#2a4055', '--border-input': '#366078',
       '--text': '#d4e4f0', '--text-secondary': '#88a0b8', '--text-tertiary': '#5a7088',
       '--accent': '#4fb3d9', '--accent-muted': '#0d2230', '--on-accent': '#ffffff',
@@ -1305,7 +1312,7 @@ function setTheme(theme) {
     for (var key2 in blueVars) root.style.setProperty(key2, blueVars[key2]);
   } else if (theme === 'newspaper') {
     var newsVars = {
-      '--page-bg': '#f0e8d6', '--surface-card': '#f7f1e0', '--surface-nested': '#e8dcc4',
+      '--page-bg': '#f0e8d6', '--bg': '#f0e8d6', '--bg-secondary': '#e8dcc4', '--surface': '#f7f1e0', '--surface-card': '#f7f1e0', '--surface-nested': '#e8dcc4',
       '--border': '#b8a88a', '--border-input': '#a89878',
       '--text': '#4a3c28', '--text-secondary': '#6b5a42', '--text-tertiary': '#8a7a5a',
       '--accent': '#c4621a', '--accent-muted': '#f0e0c8', '--on-accent': '#fff8ee',
@@ -1324,7 +1331,7 @@ function setTheme(theme) {
     root.style.setProperty('--page-bg-image', 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27%3E%3Cdefs%3E%3Cpattern id=%27p1%27 patternUnits=%27userSpaceOnUse%27 width=%27300%27 height=%27300%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%23f0e8d6%27/%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence baseFrequency=%270.03%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3CfeColorMatrix values=%270 0 0 0 0.35 0 0 0 0 0.28 0 0 0 0 0.15 0 0 0 0.06 0%27/%3E%3C/filter%3E%3Crect width=%27300%27 height=%27300%27 filter=%27url(%23n)%27/%3E%3Ctext x=%2715%27 y=%2740%27 font-size=%278%27 fill=%27%23a89878%27 opacity=%270.08%27 font-family=%27Georgia%27%3ESHIPPING CONTAINER CARGO PORT LOGISTICS%3C/text%3E%3Ctext x=%2715%27 y=%2790%27 font-size=%277%27 fill=%27%23a89878%27 opacity=%270.06%27 font-family=%27Georgia%27%3E泉州港内贸运输看板2026第34周VOL2026%3C/text%3E%3Ctext x=%2715%27 y=%27160%27 font-size=%278%27 fill=%27%23a89878%27 opacity=%270.07%27 font-family=%27Georgia%27%3ESTORAGE FEE HANDLING OVERDUE TRANSIT%3C/text%3E%3Ctext x=%2715%27 y=%27230%27 font-size=%277%27 fill=%27%23a89878%27 opacity=%270.05%27 font-family=%27Georgia%27%3EQUANZHOU PORT WEEKLY%3C/text%3E%3C/pattern%3E%3C/defs%3E%3Crect width=%27300%27 height=%27300%27 fill=%27url(%23p1)%27/%3E%3C/svg%3E")');
   } else if (theme === 'hellokitty') {
     var kittyVars = {
-      '--page-bg': '#fef0f5', '--surface-card': '#ffffff', '--surface-nested': '#fde8f0',
+      '--page-bg': '#fef0f5', '--bg': '#fef0f5', '--bg-secondary': '#fde8f0', '--surface': '#ffffff', '--surface-card': '#ffffff', '--surface-nested': '#fde8f0',
       '--border': '#f0d6e0', '--border-input': '#e0c0d0',
       '--text': '#2c2030', '--text-secondary': '#6a5060', '--text-tertiary': '#9a8090',
       '--accent': '#e8709a', '--accent-muted': '#fce0ec', '--on-accent': '#ffffff',
@@ -3061,6 +3068,7 @@ function loadSyncHistoryFromCache() {
   }, 'sync_history');
 }
 var _syncFailCount = 0; // 连续失败计数
+var _lastSyncError = ''; // 最后一次同步错误信息
 
 // GitHub Gist 配置（已内置）
 // 新账号 Token：xiaotianshi941215，repo 权限，5000次/小时配额
@@ -3631,6 +3639,7 @@ function _syncToCloudWithRetry(data, callback, retryCount) {
       } else {
         // 重试3次都失败，标记错误
         console.error('[Sync] 上传失败，已重试' + maxRetry + '次仍失败: ' + errMsg);
+        _lastSyncError = '上传失败(重试' + maxRetry + '次): ' + (errMsg || '未知错误');
         _syncStatus = 'error';
         updateSyncStatusBar();
         if (callback) try { callback(false, '上传失败(重试' + maxRetry + '次): ' + errMsg); } catch(e) {}
@@ -4929,6 +4938,7 @@ function _fallbackToRepo(reason) {
             try { cb(true, null); } catch(e) {}
           }
         } else {
+          _lastSyncError = 'Gist 和 Repo 上传均失败，请检查网络或 Token 配额';
           _syncStatus = 'error';
           updateSyncStatusBar();
           console.error('[Sync] Repo fallback 上传也失败');
@@ -4943,6 +4953,7 @@ function _fallbackToRepo(reason) {
     }
 
     // Repo 未开启，走原来的重试逻辑
+    _lastSyncError = reason || 'Gist 同步失败';
     _syncStatus = 'error';
     updateSyncStatusBar();
 
@@ -4974,6 +4985,7 @@ function _fallbackToRepo(reason) {
     }
   } else {
     // 没有待上传数据，直接回调失败
+    _lastSyncError = reason || '同步失败';
     _syncStatus = 'error';
     updateSyncStatusBar();
     if (_syncCallback) {
@@ -8298,6 +8310,7 @@ function syncToCloud(data, callback, opts) {
   
   // 两个都没开
   if (!useFeishu && !useGist) {
+    _lastSyncError = '无可用云端存储（请在设置中启用飞书或 GitHub 同步）';
     _syncStatus = 'error';
     updateSyncStatusBar();
     console.warn('[Cloud] 所有云都未启用，无法上传');
@@ -8372,6 +8385,7 @@ function syncToCloud(data, callback, opts) {
     }
     
     // 两个都失败
+    _lastSyncError = '双云均上传失败：飞书' + (feishuErr || '未知') + '；Gist/Repo' + (gistErr || '未知');
     _syncStatus = 'error';
     updateSyncStatusBar();
     console.error('[Cloud] 双云都上传失败：飞书=' + feishuErr + '，Gist=' + gistErr);
@@ -9093,10 +9107,10 @@ function openGithubSettings() {
       // 主体
       '<div style="padding:20px 24px;">' +
         // 自动同步开关 + 手动同步按钮
-        '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border-radius:10px;margin-bottom:12px;">' +
-          '<div>' +
-            '<div style="font-size:14px;font-weight:600;">自动同步（每2分钟）</div>' +
-            '<div style="font-size:11px;color:var(--text-2);margin-top:2px;">自动从云端拉取+上传，可随时手动同步</div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--surface);border-radius:10px;margin-bottom:12px;">' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:14px;font-weight:600;white-space:normal;word-break:keep-all;line-height:1.4;">自动同步（每2分钟）</div>' +
+            '<div style="font-size:11px;color:var(--text-2);margin-top:3px;white-space:normal;word-break:keep-all;line-height:1.4;">自动从云端拉取+上传，可随时手动同步</div>' +
           '</div>' +
           '<label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;flex-shrink:0;">' +
             '<input type="checkbox" id="auto-sync-toggle" style="opacity:0;width:0;height:0;" ' + (_autoSyncEnabled !== false ? 'checked' : '') + ' onchange="toggleAutoSync(this.checked)">' +
@@ -9167,10 +9181,10 @@ function openGithubSettings() {
           '</div>' +
           '<div style="font-size:12px;color:var(--text-2);margin-bottom:12px;">海外服务器，速度较慢。作为飞书的备用方案。仅超级管理员可配置。</div>' +
           // Gist 同步开关
-          '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface);border-radius:8px;margin-bottom:12px;">' +
-            '<div>' +
-              '<div style="font-size:13px;font-weight:600;">Gist 同步</div>' +
-              '<div style="font-size:11px;color:var(--text-2);margin-top:2px;">关闭后所有设备都只使用飞书，不再读写 Gist</div>' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--surface);border-radius:8px;margin-bottom:12px;">' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-size:13px;font-weight:600;white-space:normal;word-break:keep-all;line-height:1.4;">Gist 同步</div>' +
+              '<div style="font-size:11px;color:var(--text-2);margin-top:3px;white-space:normal;word-break:keep-all;line-height:1.4;">关闭后所有设备都只使用飞书，不再读写 Gist</div>' +
             '</div>' +
             '<label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;flex-shrink:0;">' +
               '<input type="checkbox" id="gist-sync-toggle" style="opacity:0;width:0;height:0;" ' + (_gistSyncEnabled ? 'checked' : '') + ' onchange="toggleGistSync(this.checked)">' +
@@ -9236,10 +9250,10 @@ function openGithubSettings() {
         '</div>' +
 
         // Repo 同步开关（独立于旧账号的 Gist 开关）
-        '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border-radius:10px;margin-bottom:16px;">' +
-          '<div>' +
-            '<div style="font-size:14px;font-weight:600;">Repo 同步</div>' +
-            '<div style="font-size:11px;color:var(--text-2);margin-top:2px;">开启后自动从 Repo 拉取+上传数据（独立于旧账号）</div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--surface);border-radius:10px;margin-bottom:16px;">' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:14px;font-weight:600;white-space:normal;word-break:keep-all;line-height:1.4;">Repo 同步</div>' +
+            '<div style="font-size:11px;color:var(--text-2);margin-top:3px;white-space:normal;word-break:keep-all;line-height:1.4;">开启后自动从 Repo 拉取+上传数据（独立于旧账号）</div>' +
           '</div>' +
           '<label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;flex-shrink:0;">' +
             '<input type="checkbox" id="repo-sync-toggle" style="opacity:0;width:0;height:0;" ' + (_repoSyncEnabled ? 'checked' : '') + ' onchange="toggleRepoSync(this.checked)">' +
@@ -9249,10 +9263,10 @@ function openGithubSettings() {
         '</div>' +
 
         // 同步间隔选择器
-        '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border-radius:10px;margin-bottom:16px;">' +
-          '<div>' +
-            '<div style="font-size:14px;font-weight:600;">自动同步间隔</div>' +
-            '<div style="font-size:11px;color:var(--text-2);margin-top:2px;">数据变动时无论如何都会立即同步一次</div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--surface);border-radius:10px;margin-bottom:16px;">' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:14px;font-weight:600;white-space:normal;word-break:keep-all;line-height:1.4;">自动同步间隔</div>' +
+            '<div style="font-size:11px;color:var(--text-2);margin-top:3px;white-space:normal;word-break:keep-all;line-height:1.4;">数据变动时无论如何都会立即同步一次</div>' +
           '</div>' +
           '<select onchange="changeSyncInterval(parseInt(this.value))" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text-1);cursor:pointer;flex-shrink:0;">' +
             '<option value="3"' + (_syncIntervalSeconds === 3 ? ' selected' : '') + '>3秒</option>' +
@@ -11527,6 +11541,11 @@ function updateSyncStatusBar() {
     var statusEl = document.getElementById('sync-status-text');
     var lastTimeEl = document.getElementById('sync-last-time');
     
+    // 同步成功时清除错误记录
+    if (_syncStatus === 'success') {
+      _lastSyncError = '';
+    }
+    
     if (statusEl) {
       var statusText = '';
       var statusColor = '';
@@ -11551,7 +11570,15 @@ function updateSyncStatusBar() {
           statusText = '待同步';
           statusColor = 'var(--text-tertiary)';
       }
-      statusEl.innerHTML = '同步状态：<span style="color:' + statusColor + ';">' + statusText + '</span>';
+      var tooltipText = '';
+      if (_syncStatus === 'error' && _lastSyncError) {
+        tooltipText = ' title="' + escapeHtml(_lastSyncError) + '"';
+      } else if (_syncStatus === 'success') {
+        tooltipText = ' title="数据已同步到云端"';
+      } else if (_syncStatus === 'syncing') {
+        tooltipText = ' title="正在上传数据到云端..."';
+      }
+      statusEl.innerHTML = '<div style="cursor:help;"' + tooltipText + '>同步状态：<span style="color:' + statusColor + ';">' + statusText + '</span></div>';
     }
     
     if (lastTimeEl && DB && DB._lastUpdated) {
@@ -13276,7 +13303,7 @@ function renderSyncNavArea() {
   syncHtml += '<div style="padding:6px 14px 12px;font-size:11px;color:var(--text-tertiary);line-height:1.6;">' +
     // 第一行：同步状态 + 上传
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
-      '<div id="sync-status-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">同步状态：<span style="color:' + statusColor + ';">' + statusText + '</span></div>' +
+      '<div id="sync-status-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help;" title="' + (_syncStatus === 'error' && _lastSyncError ? escapeHtml(_lastSyncError) : (_syncStatus === 'success' ? '数据已同步到云端' : (_syncStatus === 'syncing' ? '正在上传数据到云端...' : ''))) + '">同步状态：<span style="color:' + statusColor + ';">' + statusText + '</span></div>' +
       (uploadText ? '<span style="color:var(--module-1);font-size:10px;flex-shrink:0;white-space:nowrap;">↑' + uploadText + '</span>' : '<span style="flex-shrink:0;width:0;"></span>') +
     '</div>' +
     // 第二行：最后同步时间 + 下载
@@ -13286,6 +13313,8 @@ function renderSyncNavArea() {
     '</div>' +
     // 第三行：云端数据大小
     (cloudSizeText ? '<div style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">云端数据：<span style="color:var(--text-2);">' + cloudSizeText + '</span> <span style="opacity:0.5;">(' + _cloudDataSource + ')</span></div>' : '') +
+    // 第四行：错误详情（失败时显示）
+    (_syncStatus === 'error' && _lastSyncError ? '<div style="margin-top:4px;padding:4px 6px;background:rgba(220,53,69,.1);border-radius:4px;font-size:10px;color:var(--danger);line-height:1.4;word-break:break-all;">' + escapeHtml(_lastSyncError) + '</div>' : '') +
   '</div>';
   
   syncArea.innerHTML = syncHtml;
@@ -13348,6 +13377,7 @@ function manualSyncFromNav(e, el) {
               updateSyncStatusBar();
               showToast('✓ 强制同步成功');
             } else {
+              _lastSyncError = errMsg || '强制同步失败';
               _syncStatus = 'error';
               updateSyncStatusBar();
               showToast('✗ 同步失败');
@@ -13363,6 +13393,7 @@ function manualSyncFromNav(e, el) {
         }
         return; // 不继续后面的逻辑
       } else {
+        _lastSyncError = errMsg || '同步失败，请检查网络连接';
         _syncStatus = 'error';
         updateSyncStatusBar();
         showToast('✗ 同步失败，请检查网络');
@@ -16323,6 +16354,15 @@ function renderRecords() {
 
   let rows = '';
   for (const r of records) {
+    var imgDisplay = '';
+    var hasImages = (r.images && r.images.length > 0) || (r.imageCount && r.imageCount > 0);
+    if (hasImages) {
+      imgDisplay = `<a href="javascript:void(0)" onclick="showFleetImages('${r.id}')" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+        🖼 ${r.imageCount || 0}
+      </a>`;
+    } else {
+      imgDisplay = r.imageCount || 0;
+    }
     rows += `<tr>
       <td>${r.uploader || '—'}</td>
       <td>${r.port || '—'}</td>
@@ -16332,7 +16372,7 @@ function renderRecords() {
       <td>${ensureTrailerSuffix(r.trailerNo)}</td>
       <td>${r.deliveryTime || '—'}</td>
       <td>${r.sailingTime || '—'}</td>
-      <td class="t-center">${r.imageCount || 0}</td>
+      <td class="t-center">${imgDisplay}</td>
       <td>${r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '—'}</td>
     </tr>`;
   }
@@ -16363,6 +16403,125 @@ function renderRecords() {
       </table>
     </div>`;
   renderScreen(html);
+}
+
+// 获取车队记录的图片（兼容多种存储位置）
+function _getFleetRecordImages(recordId) {
+  var record = null;
+  for (var i = 0; i < (DB.fleetRecords || []).length; i++) {
+    if (DB.fleetRecords[i].id === recordId) {
+      record = DB.fleetRecords[i];
+      break;
+    }
+  }
+  if (!record) return { record: null, images: [] };
+  // 优先从记录本身的 images 字段取
+  if (record.images && record.images.length > 0) {
+    return { record: record, images: record.images };
+  }
+  // 其次从 DB.images 对象里取
+  if (DB.images && DB.images[recordId] && DB.images[recordId].length > 0) {
+    return { record: record, images: DB.images[recordId] };
+  }
+  return { record: record, images: [] };
+}
+
+// 查看车队记录的图片
+function showFleetImages(recordId) {
+  var result = _getFleetRecordImages(recordId);
+  var record = result.record;
+  var images = result.images;
+  if (!record || images.length === 0) {
+    showToast('该记录没有图片');
+    return;
+  }
+
+  // 缩略图列表
+  var thumbs = images.map(function(img, idx) {
+    return `<div class="fleet-thumb" onclick="viewFleetImageBig('${recordId}', ${idx})" style="flex:0 0 100px;height:100px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:all .15s;">
+      <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+    </div>`;
+  }).join('');
+
+  var infoLine = `<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:10px;">
+    📋 提单号：<strong style="color:var(--text);">${record.billNo || '—'}</strong>
+    · 港口：<strong style="color:var(--text);">${record.port || '—'}</strong>
+    · 拖车：<strong style="color:var(--text);">${record.truckNo || '—'}</strong>
+    · 共 ${images.length} 张图片
+  </div>`;
+
+  var html = `
+    <div id="fleet-image-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target.id==='fleet-image-modal')closeFleetImageModal()">
+      <div style="background:var(--surface);border-radius:16px;max-width:900px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+          <div style="font-weight:700;font-size:15px;">📷 单证图片预览</div>
+          <button onclick="closeFleetImageModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-tertiary);padding:4px 8px;">×</button>
+        </div>
+        <div style="padding:12px 16px;overflow-y:auto;flex:1;">
+          ${infoLine}
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${thumbs}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  var div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstChild);
+}
+
+function viewFleetImageBig(recordId, idx) {
+  var result = _getFleetRecordImages(recordId);
+  var images = result.images;
+  var record = result.record;
+  if (!record || !images[idx]) return;
+
+  var total = images.length;
+  var img = images[idx];
+
+  var html = `
+    <div id="fleet-big-image-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target.id==='fleet-big-image-modal')closeFleetBigImageModal()">
+      <button onclick="fleetPrevImage('${recordId}', ${idx})" style="position:absolute;left:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.1);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;backdrop-filter:blur(8px);">‹</button>
+      <button onclick="fleetNextImage('${recordId}', ${idx})" style="position:absolute;right:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.1);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;backdrop-filter:blur(8px);">›</button>
+      <button onclick="closeFleetBigImageModal()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;backdrop-filter:blur(8px);">×</button>
+      <div style="position:absolute;top:16px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;opacity:.7;">${idx + 1} / ${total} · ${img.name || ''}</div>
+      <img src="${img.dataUrl}" style="max-width:100%;max-height:85vh;object-fit:contain;border-radius:8px;">
+    </div>
+  `;
+  var div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstChild);
+}
+
+function fleetPrevImage(recordId, idx) {
+  closeFleetBigImageModal();
+  var result = _getFleetRecordImages(recordId);
+  var images = result.images;
+  if (!images || images.length === 0) return;
+  var newIdx = idx - 1;
+  if (newIdx < 0) newIdx = images.length - 1;
+  viewFleetImageBig(recordId, newIdx);
+}
+
+function fleetNextImage(recordId, idx) {
+  closeFleetBigImageModal();
+  var result = _getFleetRecordImages(recordId);
+  var images = result.images;
+  if (!images || images.length === 0) return;
+  var newIdx = idx + 1;
+  if (newIdx >= images.length) newIdx = 0;
+  viewFleetImageBig(recordId, newIdx);
+}
+
+function closeFleetImageModal() {
+  var m = document.getElementById('fleet-image-modal');
+  if (m) m.remove();
+}
+
+function closeFleetBigImageModal() {
+  var m = document.getElementById('fleet-big-image-modal');
+  if (m) m.remove();
 }
 
 function recordsFilterPort(e, el) {
@@ -16461,6 +16620,53 @@ function renderDataImportContent() {
         <input type="file" id="container-excel-input" accept=".xlsx,.xls" style="display:none;">
       </div>
       <div id="container-import-result" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- 车队单证批量导入 -->
+    <div class="card" style="padding:20px;margin-bottom:16px;">
+      <div class="sec-title" style="margin-top:0;">车队单证批量导入</div>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:14px;line-height:1.8;">
+        上传<strong>图片压缩包（.zip）</strong>和<strong>拖车信息Excel（.xlsx）</strong>，自动按提单号匹配。<br>
+        <strong>图片文件名</strong>：提单号.jpg（如 Q095009380.jpg）<br>
+        <strong>Excel格式</strong>：提单号(A)、拖车号-挂车号(B)、送货日期(C)，第一行为港口名称标题<br>
+        Excel中有匹配的：自动填入港口、拖车号、挂车号、送货日期<br>
+        只有图片的：仅导入提单号和图片，其他信息待补
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">📦 图片压缩包 (.zip)</div>
+          <div id="fleet-zip-zone" style="border:2px dashed var(--border-input);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;"
+               data-fn="clickEl" data-arg="fleet-zip-input">
+            <div style="font-size:13px;color:var(--text-secondary);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 6px;display:block;">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              </svg>
+              <span id="fleet-zip-status">点击选择 zip 文件</span>
+            </div>
+            <input type="file" id="fleet-zip-input" accept=".zip" style="display:none;">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">📊 拖车信息 Excel (.xlsx)</div>
+          <div id="fleet-excel-zone" style="border:2px dashed var(--border-input);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;"
+               data-fn="clickEl" data-arg="fleet-excel-input">
+            <div style="font-size:13px;color:var(--text-secondary);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 6px;display:block;">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <span id="fleet-excel-status">点击选择 Excel 文件</span>
+            </div>
+            <input type="file" id="fleet-excel-input" accept=".xlsx,.xls" style="display:none;">
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <button class="btn" id="fleet-batch-import-btn" onclick="startFleetBatchImport()" disabled style="opacity:.5;cursor:not-allowed;">
+          🚛 开始匹配导入
+        </button>
+        <span id="fleet-import-preview" style="font-size:12px;color:var(--text-tertiary);"></span>
+      </div>
+      <div id="fleet-import-result" style="margin-top:10px;"></div>
     </div>
 
     <!-- 开航时间导入 -->
@@ -16563,6 +16769,8 @@ function renderDataImport() {
       ${content}
     `;
     renderScreen(html);
+    // 初始化车队批量导入事件绑定
+    setTimeout(function() { try { initFleetBatchImport(); } catch(e) {} }, 50);
   } catch (err) {
     console.error('renderDataImport error:', err);
     renderScreen('<div class="empty" style="color:var(--danger);">数据导入页面加载出错: ' + (err.message || err) + '<br><br>请尝试 Ctrl+Shift+R 强制刷新页面</div>');
@@ -16582,6 +16790,16 @@ function loadExcelScript(callback) {
   script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
   script.onload = callback;
   script.onerror = () => { alert('Excel解析库加载失败，请检查网络连接'); };
+  document.head.appendChild(script);
+}
+
+// JSZip 加载
+function loadJSZip(callback) {
+  if (typeof JSZip !== 'undefined') { callback(); return; }
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+  script.onload = callback;
+  script.onerror = () => { alert('ZIP解压库加载失败，请检查网络连接'); };
   document.head.appendChild(script);
 }
 
@@ -16742,6 +16960,335 @@ function handleSailingExcelDrop(event) {
   event.preventDefault();
   const files = event.dataTransfer.files;
   if (files.length > 0) parseSailingExcel(files[0]);
+}
+
+// ========== 车队单证批量导入 ==========
+var _fleetZipFile = null;
+var _fleetExcelFile = null;
+
+function initFleetBatchImport() {
+  var zipInput = document.getElementById('fleet-zip-input');
+  var excelInput = document.getElementById('fleet-excel-input');
+  if (zipInput) zipInput.addEventListener('change', handleFleetZipSelect);
+  if (excelInput) excelInput.addEventListener('change', handleFleetExcelSelect);
+}
+
+function handleFleetZipSelect(e) {
+  var file = e.target.files[0];
+  if (file) {
+    _fleetZipFile = file;
+    document.getElementById('fleet-zip-status').textContent = '✓ ' + file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + 'MB)';
+    document.getElementById('fleet-zip-status').style.color = 'var(--module-1)';
+    checkFleetImportReady();
+  }
+}
+
+function handleFleetExcelSelect(e) {
+  var file = e.target.files[0];
+  if (file) {
+    _fleetExcelFile = file;
+    document.getElementById('fleet-excel-status').textContent = '✓ ' + file.name + ' (' + (file.size / 1024).toFixed(0) + 'KB)';
+    document.getElementById('fleet-excel-status').style.color = 'var(--module-1)';
+    checkFleetImportReady();
+  }
+}
+
+function checkFleetImportReady() {
+  var btn = document.getElementById('fleet-batch-import-btn');
+  var preview = document.getElementById('fleet-import-preview');
+  if (_fleetZipFile) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    if (_fleetExcelFile) {
+      preview.textContent = 'zip + Excel 已就绪，点击开始匹配导入';
+    } else {
+      preview.textContent = '仅 zip 文件，将只导入提单号和图片';
+    }
+  }
+}
+
+function parseFleetDate(dateVal) {
+  if (!dateVal || dateVal === '') return '';
+  if (dateVal instanceof Date) {
+    return dateVal.toISOString().slice(0, 10);
+  }
+  var s = String(dateVal).trim();
+  var m = s.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+  if (m) {
+    return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
+  }
+  return s;
+}
+
+function parseTruckTrailer(str) {
+  if (!str) return ['', ''];
+  var s = String(str).trim();
+  var parts = s.split('-');
+  if (parts.length >= 2) {
+    return [parts[0].trim(), parts.slice(1).join('-').trim()];
+  }
+  return [s, ''];
+}
+
+function fleetCompressImage(fileData, fileName, maxWidth, quality) {
+  return new Promise(function(resolve) {
+    var blob = new Blob([fileData], { type: 'image/jpeg' });
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var w = img.width, h = img.height;
+      if (w > maxWidth) {
+        h = Math.round(h * maxWidth / w);
+        w = maxWidth;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      var dataUrl = canvas.toDataURL('image/jpeg', quality / 100);
+      resolve({ dataUrl: dataUrl, name: fileName });
+    };
+    img.onerror = function() {
+      resolve(null);
+    };
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+function startFleetBatchImport() {
+  if (!_fleetZipFile) {
+    showToast('请先选择图片压缩包');
+    return;
+  }
+  var btn = document.getElementById('fleet-batch-import-btn');
+  var resultEl = document.getElementById('fleet-import-result');
+  btn.disabled = true;
+  btn.textContent = '⏳ 处理中...';
+  resultEl.innerHTML = '<div style="padding:12px;color:var(--text-secondary);">正在加载解析库...</div>';
+
+  loadJSZip(function() {
+    if (_fleetExcelFile) {
+      loadExcelScript(function() {
+        doFleetBatchImport();
+      });
+    } else {
+      doFleetBatchImport();
+    }
+  });
+}
+
+function doFleetBatchImport() {
+  var resultEl = document.getElementById('fleet-import-result');
+  var excelData = {}; // billNo -> { port, truckNo, trailerNo, deliveryTime }
+  var imageFiles = {}; // billNo -> [{name, data}]
+
+  var steps = [];
+
+  // Step 1: 解析Excel（如果有）
+  if (_fleetExcelFile) {
+    steps.push(function(next) {
+      resultEl.innerHTML = '<div style="padding:12px;color:var(--text-secondary);">正在解析 Excel...</div>';
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var data = new Uint8Array(e.target.result);
+          var wb = XLSX.read(data, { type: 'array' });
+          var sheet = wb.Sheets[wb.SheetNames[0]];
+          var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+          
+          // 第一行是港口名称标题
+          var portName = '';
+          if (rows.length > 0 && rows[0][0]) {
+            portName = String(rows[0][0]).trim();
+          }
+          
+          for (var i = 1; i < rows.length; i++) {
+            var row = rows[i];
+            var billNo = String(row[0] || '').trim();
+            if (!billNo) continue;
+            var tt = parseTruckTrailer(row[1]);
+            excelData[billNo] = {
+              port: portName,
+              truckNo: tt[0],
+              trailerNo: tt[1],
+              deliveryTime: parseFleetDate(row[2])
+            };
+          }
+          resultEl.innerHTML = '<div style="padding:12px;color:var(--module-1);">✓ Excel解析完成：' + Object.keys(excelData).length + ' 条数据（' + portName + '港）</div>';
+          next();
+        } catch(err) {
+          resultEl.innerHTML = '<div style="padding:12px;color:var(--danger);">✗ Excel解析失败：' + err.message + '</div>';
+          resetFleetImportBtn();
+        }
+      };
+      reader.readAsArrayBuffer(_fleetExcelFile);
+    });
+  }
+
+  // Step 2: 解压ZIP
+  steps.push(function(next) {
+    resultEl.innerHTML = (resultEl.innerHTML || '') + '<div style="padding:0 12px 12px;color:var(--text-secondary);">正在解压图片压缩包...</div>';
+    JSZip.loadAsync(_fleetZipFile).then(function(zip) {
+      var imgEntries = [];
+      zip.forEach(function(path, entry) {
+        if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(path)) {
+          imgEntries.push(entry);
+        }
+      });
+      var total = imgEntries.length;
+      var processed = 0;
+      var added = 0;
+      
+      imgEntries.forEach(function(entry) {
+        var fileName = entry.name.split('/').pop();
+        var billNo = fileName.replace(/\.(jpg|jpeg|png)$/i, '').trim();
+        
+        entry.async('arraybuffer').then(function(data) {
+          if (!imageFiles[billNo]) imageFiles[billNo] = [];
+          imageFiles[billNo].push({ name: fileName, data: data });
+          processed++;
+          added++;
+          if (processed >= total) {
+            resultEl.innerHTML = (resultEl.innerHTML || '') + 
+              '<div style="padding:0 12px 12px;color:var(--module-1);">✓ 解压完成：' + added + ' 张图片，' + Object.keys(imageFiles).length + ' 个提单号</div>';
+            next();
+          }
+        }).catch(function() {
+          processed++;
+          if (processed >= total) {
+            resultEl.innerHTML = (resultEl.innerHTML || '') + 
+              '<div style="padding:0 12px 12px;color:var(--module-1);">✓ 解压完成：' + added + ' 张图片，' + Object.keys(imageFiles).length + ' 个提单号</div>';
+            next();
+          }
+        });
+      });
+      
+      if (total === 0) {
+        resultEl.innerHTML = (resultEl.innerHTML || '') + 
+          '<div style="padding:0 12px 12px;color:var(--danger);">✗ 压缩包中没有图片</div>';
+        resetFleetImportBtn();
+      }
+    }).catch(function(err) {
+      resultEl.innerHTML = (resultEl.innerHTML || '') + 
+        '<div style="padding:0 12px 12px;color:var(--danger);">✗ 解压失败：' + err.message + '</div>';
+      resetFleetImportBtn();
+    });
+  });
+
+  // Step 3: 压缩图片并生成记录
+  steps.push(function(next) {
+    resultEl.innerHTML = (resultEl.innerHTML || '') + 
+      '<div style="padding:0 12px 12px;color:var(--text-secondary);">正在压缩图片并生成记录...</div>';
+    
+    var allBillNos = Object.keys(imageFiles);
+    var total = allBillNos.length;
+    var processed = 0;
+    var newRecords = [];
+    var matchedWithExcel = 0;
+    var imageOnly = 0;
+    var excelOnly = 0;
+    
+    allBillNos.forEach(function(billNo) {
+      var imgs = imageFiles[billNo];
+      var excelInfo = excelData[billNo];
+      
+      // 压缩图片
+      var compressPromises = imgs.map(function(img, idx) {
+        return fleetCompressImage(img.data, img.name, 1280, 75);
+      });
+      
+      Promise.all(compressPromises).then(function(compressed) {
+        var validImgs = compressed.filter(function(x) { return x !== null; });
+        var images = validImgs.map(function(img, idx) {
+          return { index: idx, dataUrl: img.dataUrl, name: img.name };
+        });
+        
+        var record = {
+          id: genId(),
+          uploader: '批量导入',
+          port: excelInfo ? excelInfo.port : '',
+          logisticsNo: '',
+          billNo: billNo,
+          truckNo: excelInfo ? excelInfo.truckNo : '',
+          trailerNo: excelInfo ? excelInfo.trailerNo : '',
+          deliveryTime: excelInfo ? excelInfo.deliveryTime : '',
+          sailingTime: '',
+          imageCount: images.length,
+          createdAt: new Date().toISOString(),
+          images: images,
+          _synced: false
+        };
+        
+        newRecords.push(record);
+        if (excelInfo) matchedWithExcel++;
+        else imageOnly++;
+        processed++;
+        
+        if (processed % 10 === 0 || processed >= total) {
+          resultEl.querySelector('div:last-child').textContent = 
+            '正在压缩图片并生成记录... ' + processed + '/' + total;
+        }
+        
+        if (processed >= total) {
+          // 统计Excel中有但无图片的
+          for (var eb in excelData) {
+            if (!imageFiles[eb]) excelOnly++;
+          }
+          
+          // 保存到数据库
+          if (!DB.fleetRecords) DB.fleetRecords = [];
+          newRecords.forEach(function(r) {
+            DB.fleetRecords.push(r);
+            // 自学习
+            if (r.truckNo) learnTruckNumber(r.truckNo);
+            if (r.trailerNo) learnTrailerNumber(r.trailerNo);
+          });
+          saveDataWithSync(DB, '车队单证批量导入完成');
+          
+          // 显示结果
+          var resultHtml = '<div style="padding:12px;">' +
+            '<div style="font-weight:700;margin-bottom:10px;">🎉 导入完成</div>' +
+            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' +
+              '<div style="padding:10px;background:var(--surface-nested);border-radius:8px;text-align:center;">' +
+                '<div style="font-size:24px;font-weight:800;color:var(--module-1);">' + newRecords.length + '</div>' +
+                '<div style="font-size:12px;color:var(--text-secondary);">总记录数</div>' +
+              '</div>' +
+              '<div style="padding:10px;background:var(--surface-nested);border-radius:8px;text-align:center;">' +
+                '<div style="font-size:24px;font-weight:800;color:var(--module-2);">' + matchedWithExcel + '</div>' +
+                '<div style="font-size:12px;color:var(--text-secondary);">Excel匹配</div>' +
+              '</div>' +
+              '<div style="padding:10px;background:var(--surface-nested);border-radius:8px;text-align:center;">' +
+                '<div style="font-size:24px;font-weight:800;color:var(--text-secondary);">' + imageOnly + '</div>' +
+                '<div style="font-size:12px;color:var(--text-secondary);">仅图片</div>' +
+              '</div>' +
+            '</div>' +
+            (excelOnly > 0 ? '<div style="margin-top:10px;font-size:12px;color:var(--danger);">⚠️ Excel 中有 ' + excelOnly + ' 条数据没有对应图片</div>' : '') +
+          '</div>';
+          resultEl.innerHTML = resultHtml;
+          
+          resetFleetImportBtn();
+          next();
+        }
+      });
+    });
+  });
+
+  // 顺序执行
+  function runStep(i) {
+    if (i < steps.length) {
+      steps[i](function() { runStep(i + 1); });
+    }
+  }
+  runStep(0);
+}
+
+function resetFleetImportBtn() {
+  var btn = document.getElementById('fleet-batch-import-btn');
+  if (btn) {
+    btn.textContent = '🚛 开始匹配导入';
+    btn.disabled = false;
+  }
 }
 
 function handleSailingExcelSelect(event) {
@@ -16922,7 +17469,11 @@ function renderUpload() {
       '<td>' + ensureTrailerSuffix(r.trailerNo) + '</td>' +
       '<td>' + (r.deliveryTime || '—') + '</td>' +
       '<td>' + (r.sailingTime || '—') + '</td>' +
-      '<td class="t-center">' + (r.imageCount || 0) + '</td>' +
+      '<td class="t-center">' +
+        ((r.images && r.images.length > 0) || (r.imageCount && r.imageCount > 0)
+          ? '<a href="javascript:void(0)" onclick="showFleetImages(\'' + r.id + '\')" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">🖼 ' + (r.imageCount || 0) + '</a>'
+          : (r.imageCount || 0)) +
+      '</td>' +
       '<td>' + (r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '—') + '</td>' +
     '</tr>';
   }
@@ -18093,6 +18644,7 @@ function uploadSingleRecordToCloud(id) {
       }
       // 直接保存本地（不触发再次同步）
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); } catch(e) {}
+      try { _idbSave(DB); } catch(e) {}
       showToast('✓ 已同步到云端');
       renderUpload();
     } else {
@@ -18358,7 +18910,11 @@ function renderBatchRecordsList() {
         '<td>' + (typeof ensureTrailerSuffix === 'function' ? ensureTrailerSuffix(r.trailerNo) : (r.trailerNo || '—')) + '</td>' +
         '<td>' + (r.deliveryTime || '—') + '</td>' +
         '<td>' + (r.sailingTime || '—') + '</td>' +
-        '<td class="t-center">' + (r.imageCount || 0) + '</td>' +
+        '<td class="t-center">' +
+          ((r.images && r.images.length > 0) || (r.imageCount && r.imageCount > 0)
+            ? '<a href="javascript:void(0)" onclick="showFleetImages(\'' + r.id + '\')" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">🖼 ' + (r.imageCount || 0) + '</a>'
+            : (r.imageCount || 0)) +
+        '</td>' +
         '<td>' + (r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '—') + '</td>' +
       '</tr>';
     }
@@ -18436,7 +18992,9 @@ function batchUploadToCloud() {
           DB.fleetRecords[i]._synced = true;
         }
       }
+      // 同时保存到 localStorage 和 IndexedDB，确保状态持久化
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); } catch(e) {}
+      try { _idbSave(DB); } catch(e) {}
       showToast('✓ ' + ids.length + ' 条记录已同步到云端');
       renderUpload();
     } else {
@@ -19048,7 +19606,11 @@ function searchByBillNo() {
       '<td>' + (r.logisticsNo || '—') + '</td>' +
       '<td>' + (r.deliveryTime || '—') + '</td>' +
       '<td>' + (r.sailingTime || '—') + '</td>' +
-      '<td class="t-center">' + (r.imageCount || 0) + '</td>' +
+      '<td class="t-center">' +
+        ((r.images && r.images.length > 0) || (r.imageCount && r.imageCount > 0)
+          ? '<a href="javascript:void(0)" onclick="showFleetImages(\'' + r.id + '\')" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">🖼 ' + (r.imageCount || 0) + '</a>'
+          : (r.imageCount || 0)) +
+      '</td>' +
       '<td>' + (r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '—') + '</td>' +
       '</tr>';
   }).join('');
@@ -24434,6 +24996,31 @@ function cargo_handleDrop(event) {
 
 // 主脚本加载完成标志 - 供早期登录脚本检测
 window._qzdMainReady = true;
+
+// ===== PWA Service Worker 注册 =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(function(registration) {
+        console.log('[PWA] Service Worker 注册成功，范围:', registration.scope);
+        // 检测到新版本时提示刷新
+        registration.addEventListener('updatefound', function() {
+          var newWorker = registration.installing;
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              if (confirm('🎉 发现新版本，是否立即刷新？')) {
+                newWorker.postMessage('skipWaiting');
+                window.location.reload();
+              }
+            }
+          });
+        });
+      })
+      .catch(function(err) {
+        console.warn('[PWA] Service Worker 注册失败:', err);
+      });
+  });
+}
 
 </script>
 
