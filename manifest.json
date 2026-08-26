@@ -2,7 +2,7 @@
   "name": "车队单证管理系统",
   "short_name": "车队单证",
   "description": "车队单证上传、管理与云端同步",
-  "start_url": "./dashboard.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f172a",
@@ -60,5 +60,9 @@
     }
   ],
   "splash_pages": null,
-  "categories": ["business", "productivity", "tools"]
+  "categories": [
+    "business",
+    "productivity",
+    "tools"
+  ]
 }
