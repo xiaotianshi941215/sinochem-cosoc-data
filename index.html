@@ -2808,6 +2808,10 @@ var _lastSyncedData = null; // 保存最近同步的数据，用于后台同步�
 var _syncStatus = 'idle'; // 同步状态: idle / syncing / success / error
 var _cloudDataSize = 0; // 云端数据大小（字节）
 var _cloudDataVersion = 0; // 云端数据版本号
+var _lastUploadedVersion = 0; // 上次成功上传的版本号（避免重复上传）
+var _lastUploadedHash = ''; // 上次上传的数据哈希（检测数据是否真的变化）
+var _cloudDataVersion = 0; // 云端数据版本号（保留兼容）
+var _lastCloudDownloadVersion = 0; // 上次从云端下载的版本号
 var _cloudDataSource = ''; // 云端数据来源：飞书 / Gist / Repo
 var _actualCloudSource = ''; // 实际数据来源（Gist回退到Repo时区分用）
 var _lastSyncAtDisplay = ''; // 最近同步时间（仅显示用，不存入DB避免触发saveData循环）
@@ -3619,6 +3623,7 @@ function cleanupDeletedRecords(data) {
 // 带重试的上传函数：上传失败时自动重试，确保数据成功上传
 function _syncToCloudWithRetry(data, callback, retryCount) {
   var maxRetry = 3; // 最多重试3次
+  // manual: true → 用户主动保存，强制上传（跳过哈希检测）
   syncToCloud(data, function(success, errMsg) {
     if (success === true) {
       // 上传成功
@@ -4047,15 +4052,20 @@ function mergeCloudAndLocal(cloudData, localData) {
     result[objField] = localObj;
   }
 
-  // 版本号处理：只在云端和本地版本不同时才+1（有实际数据变化）
+  // 版本号处理：修复同步循环
+  // 只有当本地版本 > 云端版本时才保留本地版本（说明本地有新改动需要上传）
+  // 云端版本 > 本地版本时，取云端版本（说明本地过期，云端有新数据）
   // 版本相同时不+1，避免"下载→合并→+1→上传→下载→+1→上传"的无限循环
   var cloudVer = cloudData._version || 0;
   var localVer = localData._version || 0;
-  if (cloudVer !== localVer) {
-    // 版本不同 → 合并了不同版本的数据 → 提升版本号触发上传
-    result._version = Math.max(cloudVer, localVer) + 1;
+  if (localVer > cloudVer) {
+    // 本地比云端新 → 本地有用户改动需要上传 → 保留本地版本，不+1
+    result._version = localVer;
+  } else if (cloudVer > localVer) {
+    // 云端比本地新 → 本地过期 → 取云端版本，不+1
+    result._version = cloudVer;
   } else {
-    // 版本相同 → 数据已同步 → 不+1，不触发多余上传
+    // 版本相同 → 数据已同步 → 不变
     result._version = localVer;
   }
   result._lastUpdated = new Date().toISOString();
@@ -4201,8 +4211,101 @@ function updateRateLimitDisplay() {
 // ============ Repo 同步功能（Gist不可用时的降级方案）============
 // Repo使用GitHub Contents API，通过PUT上传文件，通过raw.githubusercontent.com下载
 
+// 快速哈希函数（检测数据是否真的变化，不用于安全用途）
+function _quickHash(str) {
+  var hash = 0;
+  var step = Math.max(1, Math.floor(str.length / 10000)); // 采样间隔，避免遍历超长字符串
+  for (var i = 0; i < str.length; i += step) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return hash + '_' + str.length;
+}
+
+// 清理多余的旧chunk文件（chunk数量减少时，或从旧格式迁移时）
+function _cleanupOldRepoChunks(currentChunkCount, callback) {
+  var token = getGithubToken();
+  if (!token) { if (callback) try { callback(); } catch(e) {} return; }
+
+  var baseHeaders = {
+    'Authorization': 'token ' + token,
+    'Content-Type': 'application/json',
+    'Accept': 'application/vnd.github.v3+json'
+  };
+  var listUrl = 'https://api.github.com/repos/' + EMBEDDED_REPO_OWNER + '/' + EMBEDDED_REPO_NAME + '/contents/?ref=' + EMBEDDED_REPO_BRANCH;
+  var delBaseUrl = 'https://api.github.com/repos/' + EMBEDDED_REPO_OWNER + '/' + EMBEDDED_REPO_NAME + '/contents/';
+
+  fetch(listUrl, { headers: baseHeaders })
+    .then(function(r) { return r.json(); })
+    .then(function(files) {
+      if (!Array.isArray(files)) { if (callback) try { callback(); } catch(e) {} return; }
+
+      var toDelete = [];
+      for (var i = 0; i < files.length; i++) {
+        var f = files[i];
+        // 删除超过当前chunk数量的旧chunk文件（从200KB旧格式迁移到5MB新格式）
+        if (f.name.indexOf(REPO_CHUNK_PREFIX) === 0) {
+          var numStr = f.name.replace(REPO_CHUNK_PREFIX, '').replace('.json', '');
+          var num = parseInt(numStr, 10);
+          if (!isNaN(num) && num > currentChunkCount) {
+            toDelete.push({ name: f.name, sha: f.sha });
+          }
+        }
+        // 同时清理旧的Gist格式metadata文件（kanban_data.json）
+        if (f.name === GIST_FILENAME && f.name !== REPO_DATA_FILE) {
+          toDelete.push({ name: f.name, sha: f.sha });
+        }
+      }
+
+      if (toDelete.length === 0) {
+        console.log('[Repo] 无需清理旧chunk');
+        if (callback) try { callback(); } catch(e) {}
+        return;
+      }
+
+      console.log('[Repo] 需要清理 ' + toDelete.length + ' 个旧文件');
+      var deleted = 0;
+
+      function deleteNext() {
+        if (deleted >= toDelete.length) {
+          console.log('[Repo] ✓ 清理完成，删除了 ' + deleted + ' 个旧文件');
+          if (callback) try { callback(); } catch(e) {}
+          return;
+        }
+
+        var item = toDelete[deleted++];
+        var body = {
+          message: '清理旧文件 ' + item.name,
+          sha: item.sha,
+          branch: EMBEDDED_REPO_BRANCH
+        };
+
+        fetch(delBaseUrl + item.name, {
+          method: 'DELETE',
+          headers: baseHeaders,
+          body: JSON.stringify(body)
+        }).then(function(r) { return r.json(); })
+          .then(function() {
+            console.log('[Repo] ✓ 已删除旧文件 ' + item.name);
+            deleteNext();
+          })
+          .catch(function(e) {
+            console.warn('[Repo] 删除 ' + item.name + ' 失败:', e.message);
+            deleteNext();
+          });
+      }
+
+      deleteNext();
+    })
+    .catch(function(e) {
+      console.warn('[Repo] 清理旧chunk失败:', e.message);
+      if (callback) try { callback(); } catch(e) {}
+    });
+}
+
 // 上传数据到Repo
-function syncToRepo(data, callback) {
+function syncToRepo(data, callback, opts) {
+  var options = opts || {};
+  var forceUpload = options.force === true || options.manual === true; // 强制上传（手动触发时）
   var token = getGithubToken();
   if (!token) {
     console.warn('[Repo] 无Token，跳过');
@@ -4210,24 +4313,35 @@ function syncToRepo(data, callback) {
     return;
   }
 
+  _actualCloudSource = 'Repo'; // 标记数据源
   var owner = EMBEDDED_REPO_OWNER;
   var repo = EMBEDDED_REPO_NAME;
   var branch = EMBEDDED_REPO_BRANCH;
 
-  console.log('[Repo] 开始上传到 ' + owner + '/' + repo);
-
   // 序列化数据
   var jsonStr = JSON.stringify(data);
   var sizeKB = (jsonStr.length / 1024).toFixed(1);
+
+  // 变化检测：如果数据和上次上传的一样，跳过（减少API调用）
+  if (!forceUpload && _lastUploadedHash) {
+    var currentHash = _quickHash(jsonStr);
+    if (currentHash === _lastUploadedHash) {
+      console.log('[Repo] 数据未变化（哈希相同），跳过上传');
+      if (callback) try { callback(true, '数据未变化，跳过上传'); } catch(e) {}
+      return;
+    }
+  }
+
+  console.log('[Repo] 开始上传到 ' + owner + '/' + repo + ' (' + sizeKB + ' KB)');
   console.log('[Repo] 数据大小: ' + sizeKB + ' KB');
 
-  // 分成chunk（每个500KB，Repo支持最大100MB单文件）
-  var chunkSize = 500000;
+  // 分成chunk（每个5MB，减少API调用次数，Repo支持最大100MB单文件）
+  var chunkSize = 5 * 1024 * 1024; // 5MB
   var chunks = [];
   for (var i = 0; i < jsonStr.length; i += chunkSize) {
     chunks.push(jsonStr.substring(i, i + chunkSize));
   }
-  console.log('[Repo] 分成 ' + chunks.length + ' 个chunk');
+  console.log('[Repo] 分成 ' + chunks.length + ' 个chunk (每块5MB)');
 
   // 上传chunk文件（逐个上传，避免并发API调用）
   var uploadIdx = 0;
@@ -4292,7 +4406,7 @@ function syncToRepo(data, callback) {
 
     _getRepoFileSha(REPO_DATA_FILE, function(sha) {
       var body = {
-        message: '更新metadata',
+        message: '更新metadata (' + chunkCount + ' chunks, ' + sizeKB + 'KB)',
         content: metaB64,
         branch: branch
       };
@@ -4302,7 +4416,13 @@ function syncToRepo(data, callback) {
         if (ok) {
           console.log('[Repo] ✓ metadata.json 更新成功');
           console.log('[Repo] ✅ 全部上传完成: ' + successCount + '/' + chunkCount + ' chunks');
-          if (callback) try { callback(true, 'Repo上传成功'); } catch(e) {}
+          // 记录已上传的版本号和哈希，避免重复上传
+          _lastUploadedVersion = data._version || 0;
+          _lastUploadedHash = _quickHash(jsonStr);
+          // 清理多余的旧chunk文件（chunk数量减少时）
+          _cleanupOldRepoChunks(chunkCount, function() {
+            if (callback) try { callback(true, 'Repo上传成功'); } catch(e) {}
+          });
         } else {
           console.warn('[Repo] metadata.json 更新失败');
           if (callback) try { callback(successCount > 0, 'metadata失败'); } catch(e) {}
@@ -8413,7 +8533,7 @@ function syncToCloud(data, callback, opts) {
         gistErr = errMsg || (succ ? '' : '上传失败');
         gistDone = true;
         checkDone();
-      });
+      }, options); // 传递opts，手动同步时force=true
     } else {
       console.log('[Cloud] 上传到Gist...');
       syncToGist(data, function(succ, errMsg) {
@@ -8492,7 +8612,7 @@ function loadFromCloud(callback, opts) {
     if (_repoOnly) {
       console.log('[Cloud] 仅 Repo 可用，直接从 Repo 拉取...');
       _actualCloudSource = '';
-      loadFromRepo(function(data) {
+      _loadFromRepoOnly(function(data) {
         if (data && typeof data === 'object') {
           try { _cloudDataSize = JSON.stringify(data).length; } catch(e) {}
           if (data._version) _cloudDataVersion = data._version;
@@ -8623,7 +8743,7 @@ function loadFromCloud(callback, opts) {
   // 从Gist/Repo拉取（用于校验对比）
   if (_repoOnly) {
     // 仅 Repo 模式：直接从 Repo 拉取
-    loadFromRepo(function(data) {
+    _loadFromRepoOnly(function(data) {
       gistResult = data;
       gistDone = true;
       decide();
@@ -8688,74 +8808,9 @@ function _loadRepoShas(callback) {
     .catch(function() { if (callback) callback(); });
 }
 
-// 保存数据到 Repository
-function syncToRepo(data, callback) {
-  var token = getGithubToken();
-  if (!token) { if (callback) callback(false); return; }
-
-  var built = _buildGistFiles(data); // 复用 Gist 的分块逻辑
-  var fileNames = Object.keys(built.files);
-  var baseHeaders = {
-    'Authorization': 'token ' + token,
-    'Content-Type': 'application/json',
-    'Accept': 'application/vnd.github.v3+json'
-  };
-  var baseUrl = 'https://api.github.com/repos/' + EMBEDDED_REPO_OWNER + '/' + EMBEDDED_REPO_NAME + '/contents/';
-
-  console.log('[Repo] 开始上传 ' + fileNames.length + ' 个文件...');
-
-  // 先获取当前文件的 SHA
-  _loadRepoShas(function() {
-    var uploadQueue = fileNames.slice(); // 复制
-    var successCount = 0;
-    var failCount = 0;
-
-    function uploadNext() {
-      if (uploadQueue.length === 0) {
-        // 所有文件上传完成，检查是否需要删除多余的旧块文件
-        _deleteOldRepoChunks(built.files, function() {
-          console.log('[Repo] 上传完成: ' + successCount + ' 成功, ' + failCount + ' 失败');
-          _actualCloudSource = 'Repo';
-          if (callback) callback(failCount === 0);
-        });
-        return;
-      }
-
-      var fileName = uploadQueue.shift();
-      var fileContent = built.files[fileName].content;
-      var sha = _repoFileShas[fileName] || null;
-
-      var body = {
-        message: 'Update ' + fileName,
-        content: _b64Encode(fileContent)
-      };
-      if (sha) body.sha = sha;
-
-      fetch(baseUrl + fileName, {
-        method: 'PUT',
-        headers: baseHeaders,
-        body: JSON.stringify(body)
-      }).then(function(r) { return r.json(); })
-        .then(function(res) {
-          if (res.content && res.content.sha) {
-            _repoFileShas[fileName] = res.content.sha;
-            successCount++;
-          } else {
-            console.warn('[Repo] 上传 ' + fileName + ' 失败:', res.message || res);
-            failCount++;
-          }
-          uploadNext();
-        })
-        .catch(function(e) {
-          console.warn('[Repo] 上传 ' + fileName + ' 异常:', e.message);
-          failCount++;
-          uploadNext();
-        });
-    }
-
-    uploadNext();
-  });
-}
+// [已移除] 旧的 syncToRepo 函数 — 使用200KB分块（GIST_CHUNK_SIZE），
+// 会覆盖前面5MB分块的新版函数，导致用户看到790KB小文件反复上传。
+// 新版 syncToRepo 定义在前方，使用5MB分块 + 哈希变化检测 + 版本追踪。
 
 // 删除仓库中不再需要的数据块文件
 function _deleteOldRepoChunks(currentFiles, callback) {
@@ -11425,13 +11480,17 @@ function autoSyncTick() {
     }
     
     // ============================================================
-    // 上传步骤：如果本地版本比云端新，静默上传合并结果
-    // （不使用_syncToCloudWithRetry，避免上传失败时把同步状态改为'error'）
-    // 下载成功就算同步成功，上传失败只记日志不报错
+    // 上传步骤：仅在本地有实际变化时才上传
+    // 修复同步循环：不再仅凭版本号差异就上传
+    // 条件：本地版本 > 云端版本 AND 本地版本 > 上次已上传版本
     // ============================================================
     var localVerAfterMerge = DB._version || 0;
-    if (localVerAfterMerge > cloudVerAuto && !_gistSyncing && !_syncTimer) {
-      console.log('[AutoSync] 本地版本(v' + localVerAfterMerge + ')比云端(v' + cloudVerAuto + ')新，静默上传到云端');
+    _lastCloudDownloadVersion = cloudVerAuto; // 记录本次下载的版本
+    var shouldUpload = (localVerAfterMerge > cloudVerAuto) && 
+                       (localVerAfterMerge > _lastUploadedVersion) && 
+                       !_gistSyncing && !_syncTimer;
+    if (shouldUpload) {
+      console.log('[AutoSync] 本地版本(v' + localVerAfterMerge + ')比云端(v' + cloudVerAuto + ')新且未上传过(v' + _lastUploadedVersion + ')，静默上传');
       // 记住当前同步状态，上传失败不覆盖
       var savedStatus = _syncStatus;
       try {
