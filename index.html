@@ -113,6 +113,7 @@ input[type=checkbox], input[type=radio] { width: auto; cursor: pointer; }
 .driver-sync-box { background: var(--surface-card, #fff); border-radius: 16px; padding: 40px 36px; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.3); max-width: 280px; }
 .driver-sync-spinner { width: 44px; height: 44px; border: 4px solid rgba(0,0,0,0.08); border-top-color: var(--accent, #2563eb); border-radius: 50%; margin: 0 auto 20px; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes syncShine { 0% { transform: translateX(-30px); } 100% { transform: translateX(200px); } }
 .driver-exit-btn { position: fixed; top: 12px; right: 16px; z-index: 1000; background: var(--surface-card, rgba(255,255,255,0.9)); border: 1px solid var(--border, rgba(0,0,0,0.1)); border-radius: 8px; padding: 6px 14px; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); color: var(--text, #333); display: flex; align-items: center; gap: 5px; }
 .driver-exit-btn:active { transform: scale(0.95); }
 
@@ -645,7 +646,7 @@ tbody tr:hover { background: var(--surface-nested); }
       <button type="button" class="login-btn" id="login-btn" onclick="if(window._qzdEarlyLogin){window._qzdEarlyLogin();}">登 录</button>
       <div class="login-err" id="login-err"></div>
 
-      <div style="margin-top:16px;font-size:10px;color:var(--text-tertiary);text-align:center;">v2026.08.25</div>
+      <div style="margin-top:16px;font-size:10px;color:var(--text-tertiary);text-align:center;">v2026.08.27</div>
       <div style="margin-top:6px;font-size:10px;color:var(--text-tertiary);text-align:center;opacity:.7;">© 2026 集装箱智能管理平台</div>
     </div>
 
@@ -1191,7 +1192,7 @@ window.onerror = function(msg, url, line, col, error) {
     </div>
     <nav class="nav" id="nav-menu"></nav>
     <div class="nav-sync-fixed" id="nav-sync-area"></div>
-    <div class="foot" id="sidebar-foot">v2026.08.25</div>
+    <div class="foot" id="sidebar-foot">v2026.08.27</div>
   </aside>
   <main class="main" id="main">
     <div id="screen"></div>
@@ -1439,7 +1440,7 @@ function openSettings() {
       '</div>' +
       // 底部
       '<hr class="settings-divider">' +
-      '<div class="settings-footer">v2026.08.25 · 泉州中化运输看板</div>' +
+      '<div class="settings-footer">v2026.08.27 · 泉州中化运输看板</div>' +
     '</div>' +
   '</div>';
   document.getElementById('modal-container').innerHTML = html;
@@ -2842,9 +2843,13 @@ var _syncProgress = {
   startTime: 0,         // 开始时间戳
   lastUpdateTime: 0,    // 上次更新时间
   lastBytes: 0,         // 上次更新时的字节数
-  speed: 0,             // 当前速度（字节/秒）
+  speed: 0,             // 当前速度（字节/秒，移动平均）
+  avgSpeed: 0,          // 平均速度（字节/秒，全程平均）
+  speedHistory: [],     // 速度历史，用于移动平均
   chunkTotal: 0,        // chunk总数
-  chunkCurrent: 0       // 当前chunk序号
+  chunkCurrent: 0,      // 当前chunk序号
+  currentFileName: '',  // 当前正在处理的文件名
+  phase: ''             // 'preparing' / 'transferring' / 'finalizing'
 };
 var _syncProgressTimer = null; // 速度更新定时器
 
@@ -2857,24 +2862,49 @@ function _startSyncProgress(direction, totalBytes) {
   _syncProgress.lastUpdateTime = Date.now();
   _syncProgress.lastBytes = 0;
   _syncProgress.speed = 0;
+  _syncProgress.avgSpeed = 0;
+  _syncProgress.speedHistory = [];
   _syncProgress.chunkTotal = 0;
   _syncProgress.chunkCurrent = 0;
+  _syncProgress.currentFileName = '准备中...';
+  _syncProgress.phase = 'preparing';
   
-  // 启动定时器：每500ms更新一次速度显示
+  // 启动定时器：每300ms更新一次速度显示（更平滑）
   if (_syncProgressTimer) clearInterval(_syncProgressTimer);
   _syncProgressTimer = setInterval(function() {
     _updateSyncSpeed();
     if (typeof updateSyncStatusBar === 'function') updateSyncStatusBar();
-  }, 500);
+  }, 300);
 }
 
-// 更新实时速度
+// 更新实时速度（移动平均，更平滑）
 function _updateSyncSpeed() {
   var now = Date.now();
   var elapsed = (now - _syncProgress.lastUpdateTime) / 1000; // 秒
-  if (elapsed >= 0.5 && _syncProgress.transferredBytes > 0) {
+  
+  if (elapsed >= 0.3 && _syncProgress.transferredBytes > 0) {
     var deltaBytes = _syncProgress.transferredBytes - _syncProgress.lastBytes;
-    _syncProgress.speed = deltaBytes / elapsed;
+    var instantSpeed = deltaBytes / elapsed;
+    
+    // 移动平均：保留最近6个采样点（约1.8秒），速度显示更平滑
+    _syncProgress.speedHistory.push(instantSpeed);
+    if (_syncProgress.speedHistory.length > 6) {
+      _syncProgress.speedHistory.shift();
+    }
+    
+    // 计算移动平均速度
+    var sum = 0;
+    for (var i = 0; i < _syncProgress.speedHistory.length; i++) {
+      sum += _syncProgress.speedHistory[i];
+    }
+    _syncProgress.speed = sum / _syncProgress.speedHistory.length;
+    
+    // 全程平均速度（用于估算更准确）
+    var totalElapsed = (now - _syncProgress.startTime) / 1000;
+    if (totalElapsed > 0) {
+      _syncProgress.avgSpeed = _syncProgress.transferredBytes / totalElapsed;
+    }
+    
     _syncProgress.lastUpdateTime = now;
     _syncProgress.lastBytes = _syncProgress.transferredBytes;
   }
@@ -2885,10 +2915,20 @@ function _addSyncProgress(bytes) {
   _syncProgress.transferredBytes += bytes;
 }
 
-// 设置chunk进度（用于更精确的显示）
-function _setSyncChunkProgress(current, total) {
+// 设置chunk进度和当前文件名
+function _setSyncChunkProgress(current, total, fileName) {
   _syncProgress.chunkCurrent = current;
   _syncProgress.chunkTotal = total;
+  if (fileName) {
+    _syncProgress.currentFileName = fileName;
+    _syncProgress.phase = 'transferring';
+  }
+}
+
+// 设置同步阶段
+function _setSyncPhase(phase, fileName) {
+  _syncProgress.phase = phase;
+  if (fileName) _syncProgress.currentFileName = fileName;
 }
 
 // 结束同步进度追踪
@@ -2899,8 +2939,12 @@ function _endSyncProgress() {
   }
   _syncProgress.direction = '';
   _syncProgress.speed = 0;
+  _syncProgress.avgSpeed = 0;
+  _syncProgress.speedHistory = [];
   _syncProgress.transferredBytes = 0;
   _syncProgress.totalBytes = 0;
+  _syncProgress.phase = '';
+  _syncProgress.currentFileName = '';
 }
 
 // 格式化速度
@@ -2911,7 +2955,7 @@ function formatSpeed(bytesPerSec) {
   return (bytesPerSec / 1024 / 1024).toFixed(2) + ' MB/s';
 }
 
-// 格式化剩余时间
+// 格式化剩余时间（用平均速度估算，更准确）
 function formatETA(seconds) {
   if (seconds <= 0 || !isFinite(seconds)) return '--';
   if (seconds < 60) return Math.ceil(seconds) + '秒';
@@ -2925,11 +2969,13 @@ function _getSyncProgressPercent() {
   return Math.min(100, Math.round(_syncProgress.transferredBytes / _syncProgress.totalBytes * 100));
 }
 
-// 获取预计剩余时间
+// 获取预计剩余时间（用平均速度估算，更稳定）
 function _getSyncETA() {
-  if (_syncProgress.speed <= 0 || _syncProgress.totalBytes <= 0) return 0;
+  // 用平均速度估算，比瞬时速度更稳定
+  var speed = _syncProgress.avgSpeed > 0 ? _syncProgress.avgSpeed : _syncProgress.speed;
+  if (speed <= 0 || _syncProgress.totalBytes <= 0) return 0;
   var remaining = _syncProgress.totalBytes - _syncProgress.transferredBytes;
-  return remaining / _syncProgress.speed;
+  return remaining / speed;
 }
 var _lastUploadTime = ''; // 上次上传时间
 var _lastDownloadTime = ''; // 上次下载时间
@@ -4485,7 +4531,7 @@ function syncToRepo(data, callback, opts) {
           console.log('[Repo] ✓ ' + fileName + ' 上传成功');
           // 更新进度
           _addSyncProgress(chunkData.length);
-          _setSyncChunkProgress(chunkNum, chunks.length + 1);
+          _setSyncChunkProgress(chunkNum, chunks.length + 1, fileName);
         } else {
           console.warn('[Repo] ✗ ' + fileName + ' 上传失败');
         }
@@ -4627,7 +4673,7 @@ function _processRepoMetaData(metaData, callback) {
           console.log('[Repo] ✓ ' + fileName + ' 下载成功 (' + (content.length / 1024).toFixed(1) + ' KB)');
           // 更新进度
           _addSyncProgress(content.length);
-          _setSyncChunkProgress(downloadIdx, chunkCount);
+          _setSyncChunkProgress(downloadIdx, chunkCount, fileName);
         } else {
           // 使用raw URL降级下载（不消耗API配额）
           _downloadRepoRaw(fileName, function(rawContent) {
@@ -4635,7 +4681,7 @@ function _processRepoMetaData(metaData, callback) {
               chunks.push(rawContent);
               console.log('[Repo] ✓ ' + fileName + ' raw下载成功');
               _addSyncProgress(rawContent.length);
-              _setSyncChunkProgress(downloadIdx, chunkCount);
+              _setSyncChunkProgress(downloadIdx, chunkCount, fileName);
             } else {
               console.warn('[Repo] ✗ ' + fileName + ' 下载失败');
             }
@@ -13494,24 +13540,57 @@ function renderSyncNavArea() {
   if (isSyncing) {
     speedText = formatSpeed(_syncProgress.speed);
     progressPercent = _getSyncProgressPercent();
-    var dirLabel = _syncProgress.direction === 'upload' ? '↑' : '↓';
+    var dirLabel = _syncProgress.direction === 'upload' ? '上传中' : '下载中';
     var dirColor = _syncProgress.direction === 'upload' ? 'var(--module-1)' : 'var(--module-2)';
     transferredText = formatSize(_syncProgress.transferredBytes) + ' / ' + formatSize(_syncProgress.totalBytes);
     var etaSec = _getSyncETA();
     etaText = formatETA(etaSec);
+    var avgSpeedText = formatSpeed(_syncProgress.avgSpeed);
+    // 已用时间
+    var elapsedSec = (Date.now() - _syncProgress.startTime) / 1000;
+    var elapsedText = formatETA(elapsedSec);
+    // chunk进度
+    var chunkInfo = '';
+    if (_syncProgress.chunkTotal > 0) {
+      chunkInfo = _syncProgress.chunkCurrent + '/' + _syncProgress.chunkTotal;
+    }
+    // 当前文件名
+    var currentFile = _syncProgress.currentFileName || '';
+    // 阶段文字
+    var phaseText = '';
+    if (_syncProgress.phase === 'preparing') phaseText = '准备中...';
+    else if (_syncProgress.phase === 'finalizing') phaseText = '处理中...';
     
-    // 进度条
-    progressBarHtml = '<div style="margin-top:6px;margin-bottom:4px;">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--text-2);margin-bottom:3px;">' +
-        '<span style="color:' + dirColor + ';">' + dirLabel + ' ' + speedText + '</span>' +
-        '<span>剩余 ' + etaText + '</span>' +
+    // 进度条（更丰富的信息）
+    progressBarHtml = '<div style="margin-top:8px;margin-bottom:4px;">' +
+      // 第一行：方向 + 速度 + 剩余时间
+      '<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;margin-bottom:4px;">' +
+        '<span style="color:' + dirColor + ';font-weight:500;">' + dirLabel + ' · ' + speedText + '</span>' +
+        '<span style="color:var(--text-2);">剩余 ' + etaText + '</span>' +
       '</div>' +
-      '<div style="height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;">' +
-        '<div style="height:100%;width:' + progressPercent + '%;background:linear-gradient(90deg,' + dirColor + ',' + dirColor + 'aa);border-radius:2px;transition:width .3s ease;"></div>' +
+      // 进度条
+      '<div style="height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;position:relative;">' +
+        '<div style="height:100%;width:' + progressPercent + '%;background:linear-gradient(90deg,' + dirColor + ',' + dirColor + '99);border-radius:3px;transition:width .4s ease;position:relative;">' +
+          // 进度条上的光效动画
+          '<div style="position:absolute;top:0;right:0;bottom:0;width:30px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:syncShine 1.5s infinite linear;"></div>' +
+        '</div>' +
       '</div>' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-top:3px;">' +
+      // 第二行：已传/总量 + 百分比 + chunk进度
+      '<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-top:4px;">' +
         '<span>' + transferredText + '</span>' +
-        '<span>' + progressPercent + '%</span>' +
+        '<span style="color:var(--text-2);font-weight:500;">' + progressPercent + '%</span>' +
+        (chunkInfo ? '<span style="color:var(--text-tertiary);">' + chunkInfo + ' 块</span>' : '') +
+      '</div>' +
+      // 第三行：当前文件名（如果有）
+      (currentFile && _syncProgress.phase === 'transferring' ? '<div style="margin-top:3px;font-size:10px;color:var(--text-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8;">' +
+        '<span style="opacity:.6;">' + currentFile + '</span>' +
+      '</div>' : '') +
+      // 第四行：阶段提示（准备中/处理中）
+      (phaseText ? '<div style="margin-top:3px;font-size:10px;color:' + dirColor + ';opacity:.8;">' + phaseText + '</div>' : '') +
+      // 平均速度 + 已用时间（小字）
+      '<div style="display:flex;align-items:center;justify-content:space-between;font-size:9px;color:var(--text-tertiary);margin-top:3px;opacity:.7;">' +
+        '<span>平均 ' + avgSpeedText + '</span>' +
+        '<span>已用 ' + elapsedText + '</span>' +
       '</div>' +
     '</div>';
   }
@@ -25218,15 +25297,29 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
       .then(function(registration) {
         console.log('[PWA] Service Worker 注册成功，范围:', registration.scope);
+        // 立即检查更新（绕过缓存）
+        try { registration.update(); } catch(e) {}
+        
+        // 页面从后台切回前台时检查更新
+        document.addEventListener('visibilitychange', function() {
+          if (!document.hidden) {
+            try { registration.update(); } catch(e) {}
+          }
+        });
+        
         // 检测到新版本时提示刷新
         registration.addEventListener('updatefound', function() {
           var newWorker = registration.installing;
           newWorker.addEventListener('statechange', function() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              if (confirm('🎉 发现新版本，是否立即刷新？')) {
-                newWorker.postMessage('skipWaiting');
-                window.location.reload();
-              }
+              // 新版本已安装，自动激活并提示刷新
+              try { newWorker.postMessage('skipWaiting'); } catch(e) {}
+              // 延迟一下让skipWaiting生效
+              setTimeout(function() {
+                if (confirm('🎉 发现新版本，是否立即刷新？\n\n新版本包含：实时速度显示、进度条、同步优化')) {
+                  window.location.reload();
+                }
+              }, 500);
             }
           });
         });
