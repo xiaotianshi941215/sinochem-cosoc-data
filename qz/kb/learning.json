@@ -1,21 +1,71 @@
 [
  {
-  "id": "L-mwue4g58-hr",
+  "id": "L-base-001",
   "cat": "口径",
-  "title": "中福安邦已离泊泉州",
-  "body": "船讯网显示已离泊、页面还显示靠泊时，以船讯网 voyageDep=泉州 + naviStat 在途/离港 为准，归入「已离泊」段。",
+  "title": "预配表里没有「到泉州时间」列",
+  "body": "预配 sheet 只有 A 流向 / B 航线 / C 船名航次 / D 预计开航日 / E 实际-预计 / F 本港预配 / I 本港进场 等列；「到泉州预计」是船讯网抓取后合并进页面的，不在 Excel 里。所以表格版本对比用「开航日 + 本港预配」两个字段，不用到港时间。",
   "src": "manual",
-  "ts": 1795506352316,
+  "ts": 1795506000000,
   "hits": 1,
   "pin": true
  },
  {
-  "id": "L-mwue4g59-hs",
+  "id": "L-base-002",
+  "cat": "口径",
+  "title": "预配表整行标黄 = 已从泉州实际离泊（权威口径）",
+  "body": "「预配」sheet 里整行标黄的船表示已实际离泊泉州（D 列为离泊日期、E 列常写「实际」）。这条优先于船讯网推算：导入时自动读黄色，离泉州时间取标黄行日期，看板显示「已离泊泉州」。",
+  "src": "manual",
+  "ts": 1795506000000,
+  "hits": 1,
+  "pin": true
+ },
+ {
+  "id": "L-base-003",
+  "cat": "口径",
+  "title": "船讯网已离泊、页面还显示靠泊时怎么判",
+  "body": "以船讯网 voyageDep=泉州 且 naviStat 在途/离港 为准，归入「已离泊」段；页面还有旧数据时看顶部新鲜度条（超过 4 小时变黄、抓取失败变红）并点「重新抓取」。案例：中福安邦 11/24 12:39 离泊泉州，下一港天津 11/28 22:46。",
+  "src": "manual",
+  "ts": 1795506000000,
+  "hits": 1,
+  "pin": false
+ },
+ {
+  "id": "L-base-004",
   "cat": "导入",
-  "title": "导入新表后要核对较昨日变化",
-  "body": "上传后对比上一版：新增 / 消失 / 到泉州时间变化。",
-  "src": "auto",
-  "ts": 1795506352317,
+  "title": "手机导入失败时走浏览器内解析",
+  "body": "手机连不到本机 8765 服务是正常的：导入会自动改用浏览器内 readXlsx + applyGrid 解析 xlsx（不依赖服务端），成功后再自动上传到云端仓库，回到电脑点「拉取并重建」即可全量更新。",
+  "src": "manual",
+  "ts": 1795506000000,
+  "hits": 1,
+  "pin": false
+ },
+ {
+  "id": "L-base-005",
+  "cat": "抓取",
+  "title": "船讯网登录态与降级抓取",
+  "body": "账号存在 shipxy_cred.json，服务启动抓取时用 autoLogin 自动登录（填 #userName/#userPWD，点 a.login_btn.blue_btn，轮询 config.isLogin）。登录失效不中断，会降级只跑免登录接口（GetCurrvoyageNew / GetShipm），此时 state.degraded=true，页面显示蓝色降级条。",
+  "src": "manual",
+  "ts": 1795506000000,
+  "hits": 1,
+  "pin": false
+ },
+ {
+  "id": "L-base-006",
+  "cat": "异常",
+  "title": "字体偶尔突然变大",
+  "body": "iOS / 微信内置浏览器会按内容宽度自动放大字号（text autosizing）。修法：html、body 与 table.xshot 都设 -webkit-text-size-adjust:100%、text-size-adjust:100%。",
+  "src": "manual",
+  "ts": 1795506000000,
+  "hits": 1,
+  "pin": false
+ },
+ {
+  "id": "L-base-007",
+  "cat": "导入",
+  "title": "上传新表会自动和上一版对比",
+  "body": "上传顺序：① 先把仓库里的当前表存成上一版 → ② 覆盖当前表 → ③ 删掉超出保留窗口的旧版本 → ④ 逐船对比（新增 / 消失 / 日期变化 / 本港预配变化）。对比按「船名航次」做键，同一船不同航次是两条记录。",
+  "src": "manual",
+  "ts": 1795506000000,
   "hits": 1,
   "pin": false
  }
